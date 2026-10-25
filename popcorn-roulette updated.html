@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Popcorn Roulette</title>
+<meta name="theme-color" content="#d9668f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23d9668f'/%3E%3Ctext x='50' y='68' font-size='56' text-anchor='middle'%3E%F0%9F%8D%BF%3C/text%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #fff5f8; --card: #ffffff; --soft: #fdeef3; --line: #f6d6e2;
+  --rose: #d9668f; --rose-dark: #b84d74; --text: #3f2c36; --muted: #8f7480; --warn: #c2410c;
+  --shadow: 0 10px 30px rgba(184, 77, 116, .12);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1d1418; --card: #2a1e24; --soft: #33252c; --line: #45323b;
+    --rose: #e27fa4; --rose-dark: #f29bbb; --text: #f6e9ef; --muted: #b8a0ab; --warn: #fb923c;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+a { color: var(--rose-dark); }
+
+header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.logo { width: 44px; height: 44px; border-radius: 12px; background: var(--rose); display: grid; place-items: center; font-size: 24px; flex: none; }
+h1 { font-size: 24px; margin: 0; line-height: 1.1; }
+.sub { color: var(--muted); font-size: 14px; margin: 2px 0 0; }
+header .icon-btn { margin-left: auto; }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--card); box-shadow: var(--shadow); font-size: 18px; flex: none; }
+
+.panel { background: var(--card); border-radius: 20px; padding: 18px; box-shadow: var(--shadow); margin-bottom: 16px; }
+.label { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 0 0 8px; }
+
+.moods { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.mood { padding: 8px 14px; border-radius: 999px; background: var(--soft); font-weight: 600; font-size: 14px; }
+.mood.on { background: var(--rose); color: #fff; }
+
+.seg { display: flex; background: var(--soft); border-radius: 999px; padding: 4px; margin-bottom: 14px; }
+.seg button { flex: 1; padding: 8px 0; border-radius: 999px; font-weight: 600; font-size: 14px; color: var(--muted); }
+.seg button.on { background: var(--card); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+
+details.filters summary { cursor: pointer; font-weight: 600; color: var(--rose-dark); font-size: 14px; }
+details.filters[open] summary { margin-bottom: 12px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
+select, input[type=text], input[type=password] {
+  width: 100%; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text);
+}
+select:focus, input:focus { outline: 2px solid var(--rose); outline-offset: -1px; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 12px 0 8px; font-weight: 600; }
+.check input { accent-color: var(--rose); width: 18px; height: 18px; }
+.providers { display: flex; flex-wrap: wrap; gap: 8px; }
+.prov { display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; background: var(--soft); font-size: 13px; border: 2px solid transparent; }
+.prov img { width: 24px; height: 24px; border-radius: 6px; }
+.prov.on { border-color: var(--rose); }
+
+.actions { display: flex; gap: 10px; margin-top: 16px; }
+.big { flex: 1; padding: 14px; border-radius: 999px; background: var(--rose); color: #fff; font-weight: 700; font-size: 17px; }
+.big:hover { background: var(--rose-dark); }
+.big:disabled { opacity: .6; cursor: wait; }
+.ghost { padding: 14px 16px; border-radius: 999px; background: var(--soft); color: var(--rose-dark); font-weight: 700; font-size: 15px; }
+
+.rolling { text-align: center; padding: 40px 16px; font-size: 20px; font-weight: 700; color: var(--rose-dark); }
+.msg { text-align: center; color: var(--muted); padding: 24px 12px; }
+
+.result { display: grid; grid-template-columns: 140px 1fr; gap: 16px; }
+.poster { width: 140px; aspect-ratio: 2/3; border-radius: 14px; object-fit: cover; background: var(--soft); }
+.result h2 { margin: 0 0 4px; font-size: 22px; line-height: 1.2; }
+.meta { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.tag { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--soft); color: var(--rose-dark); font-weight: 600; }
+.overview { font-size: 15px; margin: 12px 0 0; grid-column: 1 / -1; }
+.where { grid-column: 1 / -1; }
+.where .logos { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; }
+.where img { width: 36px; height: 36px; border-radius: 9px; }
+.small { font-size: 13px; color: var(--muted); }
+.card-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.pill { padding: 9px 14px; border-radius: 999px; background: var(--soft); color: var(--rose-dark); font-weight: 700; font-size: 14px; text-decoration: none; }
+.pill.solid { background: var(--rose); color: #fff; }
+.pill.saved { background: var(--rose); color: #fff; }
+
+.wl { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
+.wl-item { position: relative; text-align: left; }
+.wl-item img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 12px; background: var(--soft); display: block; }
+.wl-item span { display: block; font-size: 13px; font-weight: 600; margin-top: 4px; line-height: 1.3; }
+.wl-x { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,.6); color: #fff; font-size: 15px; line-height: 1; }
+
+.setup ol { padding-left: 20px; margin: 8px 0 16px; }
+.setup li { margin-bottom: 6px; }
+.row { display: flex; gap: 8px; margin-top: 8px; }
+.row input { flex: 1; }
+.err { color: var(--warn); font-size: 14px; margin: 8px 0 0; }
+
+footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 28px; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; box-shadow: var(--shadow); white-space: nowrap; }
+
+@media (max-width: 460px) {
+  .result { grid-template-columns: 110px 1fr; gap: 12px; }
+  .poster { width: 110px; }
+  .result h2 { font-size: 19px; }
+  .grid2 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo" aria-hidden="true">🍿</div>
+    <div>
+      <h1>Popcorn Roulette</h1>
+      <p class="sub">Bored? Let fate pick tonight's watch.</p>
+    </div>
+    <button class="icon-btn" id="wlBtn" title="Watchlist" aria-label="Watchlist" hidden>♡</button>
+    <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings" hidden>⚙︎</button>
+  </header>
+
+  <!-- First-time setup -->
+  <section id="setup" class="panel setup" hidden>
+    <p class="label">One-time setup</p>
+    <p style="margin-top:0">This page gets its movies from TMDB, a free movie database. It needs your own free access key:</p>
+    <ol>
+      <li>Create a free account at <a href="https://www.themoviedb.org/signup" target="_blank" rel="noopener">themoviedb.org</a> and verify your email.</li>
+      <li>Go to <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Settings → API</a> and request a key. Choose <b>Developer</b>, personal/non-commercial use.</li>
+      <li>Copy the long <b>API Read Access Token</b> (the short API Key works too) and paste it here.</li>
+    </ol>
+    <div class="row">
+      <input id="keyInput" type="password" placeholder="Paste your token or API key" autocomplete="off">
+      <button class="pill solid" id="keySave">Save</button>
+    </div>
+    <p class="err" id="keyErr" hidden></p>
+    <p class="small">Your key is saved only in this browser on this device.</p>
+  </section>
+
+  <!-- Picker -->
+  <section id="picker" hidden>
+    <div class="panel">
+      <p class="label">What's the mood?</p>
+      <div class="moods" id="moods"></div>
+
+      <div class="seg" id="typeSeg">
+        <button data-type="movie">Movie</button>
+        <button data-type="tv">TV show</button>
+        <button data-type="either">Either</button>
+      </div>
+
+      <details class="filters" id="filters">
+        <summary>More filters</summary>
+        <div class="grid2">
+          <label class="field">Era
+            <select id="era">
+              <option value="any">Any year</option>
+              <option value="2020">2020s</option>
+              <option value="2010">2010s</option>
+              <option value="2000">2000s</option>
+              <option value="1990">90s</option>
+              <option value="nostalgia">Nostalgia (2000–2015)</option>
+            </select>
+          </label>
+          <label class="field">Movie length
+            <select id="runtime">
+              <option value="0">Any length</option>
+              <option value="100">Under 1h 40</option>
+              <option value="120">Under 2h</option>
+            </select>
+          </label>
+          <label class="field">Rating
+            <select id="rating">
+              <option value="6">6+ (most things)</option>
+              <option value="6.8">6.8+ (good)</option>
+              <option value="7.5">7.5+ (great only)</option>
+            </select>
+          </label>
+          <label class="field">Language
+            <select id="lang">
+              <option value="any">Any</option>
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+              <option value="ko">Korean</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="check"><input type="checkbox" id="onlyMine"> Only what's on my streaming services</label>
+        <div id="provBox" hidden>
+          <label class="field" style="margin-bottom:10px">Country
+            <select id="region">
+              <option value="US">United States</option>
+              <option value="DO">Dominican Republic</option>
+            </select>
+          </label>
+          <div class="providers" id="providers"></div>
+        </div>
+      </details>
+
+      <div class="actions">
+        <button class="big" id="pickBtn">🎲 Pick for me</button>
+        <button class="ghost" id="trendBtn" title="Random pick from what's trending this week">🔥 Trending</button>
+      </div>
+    </div>
+
+    <div class="panel" id="out" hidden></div>
+  </section>
+
+  <!-- Watchlist -->
+  <section id="watchlist" class="panel" hidden>
+    <p class="label">Your watchlist</p>
+    <div class="wl" id="wlGrid"></div>
+    <p class="msg" id="wlEmpty">Tap ♡ Save on a pick to keep it here.</p>
+    <button class="pill" id="wlBack">← Back to picking</button>
+  </section>
+
+  <!-- Settings -->
+  <section id="settings" class="panel" hidden>
+    <p class="label">Settings</p>
+    <p class="small" style="margin-top:0">Hidden titles: <b id="hiddenCount">0</b>. These never come up again.</p>
+    <div class="card-actions" style="margin:0 0 16px">
+      <button class="pill" id="clearHidden">Show hidden titles again</button>
+      <button class="pill" id="changeKey">Change TMDB key</button>
+    </div>
+    <button class="pill" id="settingsBack">← Back</button>
+  </section>
+
+  <footer>
+    Movie data and posters from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>.
+    This product uses the TMDB API but is not endorsed or certified by TMDB.
+    Streaming info powered by JustWatch.
+  </footer>
+</main>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// ===================== Storage (this device only) =====================
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("pr:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("pr:" + k, JSON.stringify(v)); } catch {} }
+};
+
+// ===================== TMDB =====================
+const API = "https://api.themoviedb.org/3";
+const IMG = "https://image.tmdb.org/t/p/";
+
+async function tmdb(path, params = {}) {
+  const key = store.get("key", "");
+  const url = new URL(API + path);
+  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== "" && v !== null) url.searchParams.set(k, v);
+  const headers = { accept: "application/json" };
+  if (key.length > 40) headers.Authorization = "Bearer " + key; // Read Access Token
+  else url.searchParams.set("api_key", key);                     // short v3 API key
+  const res = await fetch(url, { headers });
+  if (res.status === 401) throw Object.assign(new Error("bad key"), { code: 401 });
+  if (!res.ok) throw new Error("TMDB error " + res.status);
+  return res.json();
+}
+
+// Genre IDs from TMDB. "|" = any of, "," = all of.
+const MOODS = [
+  { id: "main",   label: "💅 Main character energy", movie: { genres: "35|10749", keywords: ["female protagonist"] }, tv: { genres: "35|18", keywords: ["female protagonist"] } },
+  { id: "romcom", label: "💕 Romcom",                movie: { genres: "10749,35" },                                  tv: { genres: "35", keywords: ["romantic comedy", "romance"] } },
+  { id: "cozy",   label: "🧸 Cozy & feel-good",      movie: { genres: "35|10751", keywords: ["feel-good"] },           tv: { genres: "35", keywords: ["feel-good"] } },
+  { id: "coming", label: "🌱 Coming-of-age",         movie: { genres: "18|35", keywords: ["coming of age"] },          tv: { genres: "18|35", keywords: ["coming of age"] } },
+  { id: "cry",    label: "😭 I need a good cry",     movie: { genres: "18,10749" },                                  tv: { genres: "18", keywords: ["tearjerker"] } },
+  { id: "tense",  label: "😰 Edge of my seat",       movie: { genres: "53|9648" },                                   tv: { genres: "9648|80" } },
+  { id: "twist",  label: "🤯 Mind-blowing twist",    movie: { genres: "9648|53", keywords: ["plot twist"] },           tv: { genres: "9648", keywords: ["plot twist"] } },
+  { id: "scary",  label: "👻 Scare me",              movie: { genres: "27" },                                        tv: { genres: "9648|10765", keywords: ["horror"] } },
+  { id: "any",    label: "✨ Surprise me",           movie: { genres: "10749|35|18|53|9648|27" },                     tv: { genres: "35|18|9648|80" } }
+];
+
+const GENRE_NAMES = {
+  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 99: "Documentary", 18: "Drama",
+  10751: "Family", 14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance",
+  878: "Sci-Fi", 10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western", 10759: "Action & Adventure",
+  10762: "Kids", 10763: "News", 10764: "Reality", 10765: "Sci-Fi & Fantasy", 10766: "Soap", 10767: "Talk", 10768: "War & Politics"
+};
+
+// Keyword names → TMDB keyword IDs (looked up once, then remembered).
+async function keywordIds(names = []) {
+  const cache = store.get("kw", {});
+  const ids = [];
+  for (const name of names) {
+    if (!(name in cache)) {
+      try {
+        const r = await tmdb("/search/keyword", { query: name });
+        const exact = r.results.find((k) => k.name.toLowerCase() === name.toLowerCase());
+        cache[name] = exact ? exact.id : null;
+      } catch { cache[name] = null; }
+    }
+    if (cache[name]) ids.push(cache[name]);
+  }
+  store.set("kw", cache);
+  return ids;
+}
+
+// ===================== State =====================
+const state = {
+  mood: store.get("mood", "any"),
+  type: store.get("type", "either"),
+  current: null
+};
+const $ = (id) => document.getElementById(id);
+const keyOf = (type, id) => `${type}:${id}`;
+
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => (t.hidden = true), 1800);
+}
+
+function show(view) {
+  for (const v of ["setup", "picker", "watchlist", "settings"]) $(v).hidden = v !== view;
+  const ready = view !== "setup";
+  $("wlBtn").hidden = !ready;
+  $("settingsBtn").hidden = !ready;
+  window.scrollTo({ top: 0 });
+}
+
+// ===================== Setup =====================
+$("keySave").addEventListener("click", async () => {
+  const key = $("keyInput").value.trim();
+  if (!key) return;
+  store.set("key", key);
+  $("keyErr").hidden = true;
+  try {
+    await tmdb("/configuration");
+    $("keyInput").value = "";
+    show("picker");
+    toast("You're all set 🍿");
+  } catch (e) {
+    store.set("key", "");
+    $("keyErr").textContent = e.code === 401
+      ? "That key didn't work. Check you copied all of it, and that your TMDB email is verified."
+      : "Couldn't reach TMDB. Check your internet and try again.";
+    $("keyErr").hidden = false;
+  }
+});
+
+// ===================== Filters UI =====================
+function renderMoods() {
+  $("moods").innerHTML = "";
+  for (const m of MOODS) {
+    const b = document.createElement("button");
+    b.className = "mood" + (m.id === state.mood ? " on" : "");
+    b.textContent = m.label;
+    b.addEventListener("click", () => { state.mood = m.id; store.set("mood", m.id); renderMoods(); });
+    $("moods").appendChild(b);
+  }
+}
+
+function renderType() {
+  for (const b of $("typeSeg").children) b.classList.toggle("on", b.dataset.type === state.type);
+}
+$("typeSeg").addEventListener("click", (e) => {
+  const t = e.target.dataset?.type;
+  if (!t) return;
+  state.type = t;
+  store.set("type", t);
+  renderType();
+});
+
+// Remember filter choices
+for (const id of ["era", "runtime", "rating", "lang", "region"]) {
+  const saved = store.get("f:" + id, null);
+  if (saved !== null) $(id).value = saved;
+  $(id).addEventListener("change", () => {
+    store.set("f:" + id, $(id).value);
+    if (id === "region") loadProviders();
+  });
+}
+$("onlyMine").checked = store.get("onlyMine", false);
+$("onlyMine").addEventListener("change", () => {
+  store.set("onlyMine", $("onlyMine").checked);
+  $("provBox").hidden = !$("onlyMine").checked;
+  if ($("onlyMine").checked) loadProviders();
+});
+
+async function loadProviders() {
+  const region = $("region").value;
+  const mine = new Set(store.get("prov:" + region, []));
+  $("providers").innerHTML = '<span class="small">Loading services…</span>';
+  try {
+    const [m, t] = await Promise.all([
+      tmdb("/watch/providers/movie", { watch_region: region }),
+      tmdb("/watch/providers/tv", { watch_region: region })
+    ]);
+    const byId = new Map();
+    for (const p of [...m.results, ...t.results]) {
+      const prio = p.display_priorities?.[region] ?? p.display_priority ?? 999;
+      if (!byId.has(p.provider_id) || prio < byId.get(p.provider_id).prio) byId.set(p.provider_id, { ...p, prio });
+    }
+    const list = [...byId.values()].sort((a, b) => a.prio - b.prio).slice(0, 24);
+    $("providers").innerHTML = "";
+    for (const p of list) {
+      const b = document.createElement("button");
+      b.className = "prov" + (mine.has(p.provider_id) ? " on" : "");
+      const img = document.createElement("img");
+      img.src = IMG + "w92" + p.logo_path;
+      img.alt = "";
+      b.append(img, p.provider_name);
+      b.addEventListener("click", () => {
+        mine.has(p.provider_id) ? mine.delete(p.provider_id) : mine.add(p.provider_id);
+        store.set("prov:" + region, [...mine]);
+        b.classList.toggle("on");
+      });
+      $("providers").appendChild(b);
+    }
+  } catch {
+    $("providers").innerHTML = '<span class="small">Couldn\'t load streaming services.</span>';
+  }
+}
+
+// ===================== Picking =====================
+function eraRange(era) {
+  const map = { 2020: ["2020-01-01", ""], 2010: ["2010-01-01", "2019-12-31"], 2000: ["2000-01-01", "2009-12-31"],
+                1990: ["1990-01-01", "1999-12-31"], nostalgia: ["2000-01-01", "2015-12-31"] };
+  return map[era] || ["", ""];
+}
+
+function hiddenSet() { return new Set(store.get("hidden", [])); }
+function recentSet() { return new Set(store.get("recent", [])); }
+function remember(k) {
+  const r = store.get("recent", []).filter((x) => x !== k);
+  r.unshift(k);
+  store.set("recent", r.slice(0, 60)); // avoid repeats for a while
+}
+
+async function discoverParams(type, mood, { useKeywords = true, loose = false } = {}) {
+  const cfg = mood[type];
+  const [from, to] = eraRange($("era").value);
+  const p = {
+    sort_by: "popularity.desc",
+    include_adult: "false",
+    with_genres: cfg.genres,
+    "vote_average.gte": loose ? Math.min(6, +$("rating").value) : $("rating").value,
+    "vote_count.gte": loose ? (type === "movie" ? 80 : 40) : (type === "movie" ? 300 : 120)
+  };
+  if (useKeywords && cfg.keywords) {
+    const ids = await keywordIds(cfg.keywords);
+    if (ids.length) p.with_keywords = ids.join("|");
+  }
+  const dateKey = type === "movie" ? "primary_release_date" : "first_air_date";
+  if (from) p[dateKey + ".gte"] = from;
+  if (to) p[dateKey + ".lte"] = to;
+  if (type === "movie" && +$("runtime").value) p["with_runtime.lte"] = $("runtime").value;
+  if ($("lang").value !== "any") p.with_original_language = $("lang").value;
+  if ($("onlyMine").checked) {
+    const region = $("region").value;
+    const mine = store.get("prov:" + region, []);
+    if (mine.length) {
+      p.watch_region = region;
+      p.with_watch_providers = mine.join("|");
+      p.with_watch_monetization_types = "flatrate|free|ads";
+    }
+  }
+  return p;
+}
+
+async function findCandidates(type, mood) {
+  const hidden = hiddenSet();
+  const recent = recentSet();
+  // Try strict first, then relax (drop keywords, then lower the vote bar) if nothing matches.
+  const attempts = [{}, { useKeywords: false }, { useKeywords: false, loose: true }];
+  for (const opt of attempts) {
+    const params = await discoverParams(type, mood, opt);
+    const first = await tmdb(`/discover/${type}`, params);
+    if (!first.total_results) continue;
+    const maxPage = Math.min(first.total_pages, 12); // stay within the popular stuff
+    for (let tries = 0; tries < 3; tries++) {
+      const page = 1 + Math.floor(Math.random() * maxPage);
+      const data = page === 1 ? first : await tmdb(`/discover/${type}`, { ...params, page });
+      let pool = data.results.filter((r) => !hidden.has(keyOf(type, r.id)));
+      const fresh = pool.filter((r) => !recent.has(keyOf(type, r.id)));
+      if (fresh.length) pool = fresh;
+      if (pool.length) return pool;
+    }
+  }
+  return [];
+}
+
+const titleOf = (r) => r.title || r.name || "Untitled";
+const yearOf = (r) => (r.release_date || r.first_air_date || "").slice(0, 4);
+
+async function roll(titles) {
+  // A quick slot-machine shuffle through titles before the reveal.
+  const out = $("out");
+  out.hidden = false;
+  out.innerHTML = '<div class="rolling" id="slot">🎲</div>';
+  const slot = $("slot");
+  const steps = Math.min(12, titles.length * 2);
+  for (let i = 0; i < steps; i++) {
+    slot.textContent = titles[Math.floor(Math.random() * titles.length)];
+    await new Promise((r) => setTimeout(r, 60 + i * 12));
+  }
+}
+
+async function pick(trending = false) {
+  const btns = [$("pickBtn"), $("trendBtn")];
+  btns.forEach((b) => (b.disabled = true));
+  const out = $("out");
+  out.hidden = false;
+  out.innerHTML = '<div class="rolling">🎲 Rolling…</div>';
+  try {
+    let type = state.type === "either" ? (Math.random() < 0.5 ? "movie" : "tv") : state.type;
+    let pool;
+    if (trending) {
+      const data = await tmdb(`/trending/${state.type === "either" ? "all" : type}/week`);
+      const hidden = hiddenSet();
+      pool = data.results.filter((r) => (r.media_type || type) !== "person")
+        .map((r) => ({ ...r, media_type: r.media_type || type }))
+        .filter((r) => !hidden.has(keyOf(r.media_type, r.id)));
+    } else {
+      const mood = MOODS.find((m) => m.id === state.mood) || MOODS[MOODS.length - 1];
+      pool = await findCandidates(type, mood);
+      if (!pool.length && state.type === "either") { // try the other type before giving up
+        type = type === "movie" ? "tv" : "movie";
+        pool = await findCandidates(type, mood);
+      }
+      pool = pool.map((r) => ({ ...r, media_type: type }));
+    }
+    if (!pool.length) {
+      out.innerHTML = '<p class="msg">Nothing matches all those filters 😕<br>Try another mood, a wider era, or turn off “only my services”.</p>';
+      return;
+    }
+    const choice = pool[Math.floor(Math.random() * pool.length)];
+    $("out").scrollIntoView({ behavior: "smooth", block: "start" });
+    await roll(pool.map(titleOf));
+    await showTitle(choice.media_type, choice.id);
+    remember(keyOf(choice.media_type, choice.id));
+  } catch (e) {
+    if (e.code === 401) { store.set("key", ""); show("setup"); return; }
+    out.innerHTML = '<p class="msg">Couldn\'t reach TMDB. Check your connection and try again.</p>';
+  } finally {
+    btns.forEach((b) => (b.disabled = false));
+  }
+}
+
+$("pickBtn").addEventListener("click", () => pick(false));
+$("trendBtn").addEventListener("click", () => pick(true));
+
+// ===================== Result card =====================
+function el(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  Object.assign(n, props);
+  n.append(...kids.filter((k) => k !== null && k !== undefined));
+  return n;
+}
+
+async function showTitle(type, id) {
+  const d = await tmdb(`/${type}/${id}`, { append_to_response: "videos,watch/providers" });
+  state.current = { type, id, title: titleOf(d), year: yearOf(d), poster: d.poster_path };
+  const out = $("out");
+  out.hidden = false;
+  out.innerHTML = "";
+
+  const metaBits = [type === "movie" ? "Movie" : "TV show", yearOf(d)];
+  if (type === "movie" && d.runtime) metaBits.push(`${Math.floor(d.runtime / 60)}h ${d.runtime % 60}m`);
+  if (type === "tv" && d.number_of_seasons) metaBits.push(`${d.number_of_seasons} season${d.number_of_seasons > 1 ? "s" : ""}`);
+  if (d.vote_average) metaBits.push(`★ ${d.vote_average.toFixed(1)}`);
+
+  const poster = el("img", { className: "poster", alt: `${titleOf(d)} poster` });
+  if (d.poster_path) poster.src = IMG + "w342" + d.poster_path;
+
+  const tags = el("div", { className: "tags" });
+  for (const g of d.genres || []) tags.appendChild(el("span", { className: "tag", textContent: GENRE_NAMES[g.id] || g.name }));
+
+  const info = el("div", {},
+    el("h2", { textContent: titleOf(d) }),
+    el("div", { className: "meta", textContent: metaBits.filter(Boolean).join(" · ") }),
+    tags,
+    d.tagline ? el("div", { className: "small", textContent: `“${d.tagline}”` }) : null
+  );
+
+  // Where to watch
+  const region = $("region").value;
+  const wp = d["watch/providers"]?.results?.[region];
+  const where = el("div", { className: "where" }, el("p", { className: "label", textContent: `Where to watch (${region})` }));
+  const streams = [...(wp?.flatrate || []), ...(wp?.free || []), ...(wp?.ads || [])];
+  if (streams.length) {
+    const logos = el("div", { className: "logos" });
+    for (const p of streams) logos.appendChild(el("img", { src: IMG + "w92" + p.logo_path, alt: p.provider_name, title: p.provider_name }));
+    where.appendChild(logos);
+  } else if (wp?.rent || wp?.buy) {
+    where.appendChild(el("div", { className: "small", textContent: "Not streaming right now. Available to rent or buy." }));
+  } else {
+    where.appendChild(el("div", { className: "small", textContent: "No streaming info for this country." }));
+  }
+
+  // Actions
+  const wl = store.get("watchlist", []);
+  const k = keyOf(type, id);
+  const saved = wl.some((w) => keyOf(w.type, w.id) === k);
+  const saveBtn = el("button", { className: "pill" + (saved ? " saved" : ""), textContent: saved ? "♥ Saved" : "♡ Save" });
+  saveBtn.addEventListener("click", () => {
+    let list = store.get("watchlist", []);
+    if (list.some((w) => keyOf(w.type, w.id) === k)) {
+      list = list.filter((w) => keyOf(w.type, w.id) !== k);
+      saveBtn.textContent = "♡ Save"; saveBtn.classList.remove("saved");
+      toast("Removed from watchlist");
+    } else {
+      list.unshift(state.current);
+      saveBtn.textContent = "♥ Saved"; saveBtn.classList.add("saved");
+      toast("Saved to watchlist");
+    }
+    store.set("watchlist", list);
+  });
+
+  const again = el("button", { className: "pill solid", textContent: "🎲 Another one" });
+  again.addEventListener("click", () => pick(false));
+
+  const nope = el("button", { className: "pill", textContent: "🙅 Seen it / not for me" });
+  nope.addEventListener("click", () => {
+    const h = store.get("hidden", []);
+    if (!h.includes(k)) h.push(k);
+    store.set("hidden", h);
+    toast("Got it, won't show that again");
+    pick(false);
+  });
+
+  const actions = el("div", { className: "card-actions" }, again, saveBtn, nope);
+
+  const trailer = (d.videos?.results || [])
+    .filter((v) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"))
+    .sort((a, b) => (b.official - a.official) || (a.type === "Trailer" ? -1 : 1))[0];
+  if (trailer) {
+    actions.appendChild(el("a", { className: "pill", textContent: "▶ Trailer", href: `https://www.youtube.com/watch?v=${trailer.key}`, target: "_blank", rel: "noopener" }));
+  }
+  actions.appendChild(el("a", { className: "pill", textContent: "More info", href: `https://www.themoviedb.org/${type}/${id}`, target: "_blank", rel: "noopener" }));
+
+  out.append(el("div", { className: "result" },
+    poster, info,
+    el("p", { className: "overview", textContent: d.overview || "No summary available." }),
+    where, actions
+  ));
+}
+
+// ===================== Watchlist & settings =====================
+function renderWatchlist() {
+  const list = store.get("watchlist", []);
+  $("wlGrid").innerHTML = "";
+  $("wlEmpty").hidden = list.length > 0;
+  for (const w of list) {
+    const img = el("img", { alt: "" });
+    if (w.poster) img.src = IMG + "w185" + w.poster;
+    const open = el("button", { className: "wl-item" }, img, el("span", { textContent: `${w.title}${w.year ? ` (${w.year})` : ""}` }));
+    open.addEventListener("click", async () => {
+      show("picker");
+      $("out").hidden = false;
+      $("out").innerHTML = '<div class="rolling">Loading…</div>';
+      try { await showTitle(w.type, w.id); } catch { $("out").innerHTML = '<p class="msg">Couldn\'t load that one.</p>'; }
+    });
+    const x = el("button", { className: "wl-x", textContent: "×", title: "Remove" });
+    x.addEventListener("click", (e) => {
+      e.stopPropagation();
+      store.set("watchlist", store.get("watchlist", []).filter((o) => keyOf(o.type, o.id) !== keyOf(w.type, w.id)));
+      renderWatchlist();
+    });
+    open.appendChild(x);
+    $("wlGrid").appendChild(open);
+  }
+}
+
+$("wlBtn").addEventListener("click", () => { renderWatchlist(); show("watchlist"); });
+$("wlBack").addEventListener("click", () => show("picker"));
+$("settingsBtn").addEventListener("click", () => { $("hiddenCount").textContent = store.get("hidden", []).length; show("settings"); });
+$("settingsBack").addEventListener("click", () => show("picker"));
+$("clearHidden").addEventListener("click", () => { store.set("hidden", []); $("hiddenCount").textContent = 0; toast("Hidden titles are back in the mix"); });
+$("changeKey").addEventListener("click", () => show("setup"));
+
+// ===================== Start =====================
+renderMoods();
+renderType();
+$("provBox").hidden = !$("onlyMine").checked;
+if (store.get("key", "")) {
+  show("picker");
+  if ($("onlyMine").checked) loadProviders();
+} else {
+  show("setup");
+}
+</script>
+</body>
+</html>
